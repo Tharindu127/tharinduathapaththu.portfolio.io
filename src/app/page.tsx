@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Github, Download, Mail, ExternalLink, ChevronRight, Send, MapPin, Phone, Facebook, Instagram, LucideTwitter, Linkedin, TwitterIcon, LinkedinIcon, MailPlus } from 'lucide-react';
+import { Menu, X, Github, Download, Mail, ExternalLink, ChevronRight, Send, MapPin, Phone, Facebook, Instagram, TwitterIcon, LinkedinIcon, MailPlus } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Home() {
@@ -685,12 +685,17 @@ export default function Home() {
                   </div>
 
                   <div className="bg-gray-700/50 rounded-lg p-4 flex items-center justify-center">
-                    <img
-                      src="https://ghchart.rshah.org/2e7eea/Tharindu127"
-                      alt="GitHub Contribution Graph"
-                      className="w-full object-contain"
-                      style={{ maxHeight: "100px" }}
-                    />
+                    <div className="relative w-full" style={{ height: "100px" }}>
+                      <Image
+                        src="https://ghchart.rshah.org/2e7eea/Tharindu127"
+                        alt="GitHub Contribution Graph"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 800px"
+                        style={{ objectFit: 'contain' }}
+                        unoptimized // No need for =true, just the prop
+                        priority // Add priority to ensure it loads early
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1123,12 +1128,15 @@ export default function Home() {
           <div className="relative w-[80vw] h-[80vh] flex items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
               {/* Regular img tag for more reliable rendering */}
-              <img
+              <Image
                 src={selectedImage}
                 alt="Project screenshot"
-                className="max-w-full max-h-full object-contain"
+                fill
+                sizes="(max-width: 768px) 100vw, 80vw"
+                style={{ objectFit: 'contain' }}
                 onError={() => console.error("Image failed to load:", selectedImage)}
                 onLoad={() => console.log("Image loaded successfully:", selectedImage)}
+                unoptimized={true} // Important for dynamic image sources
               />
             </div>
             <button
