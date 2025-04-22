@@ -16,6 +16,10 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
 
+  const assetPrefix = process.env.NODE_ENV === 'production'
+    ? '/tharinduathapaththu.portfolio.io'
+    : '';
+
   useEffect(() => {
     // Simulating content loading
     const timer = setTimeout(() => setIsLoading(false), 1500);
@@ -49,13 +53,13 @@ export default function Home() {
     {
       id: 1,
       title: 'YOOZ Ibiza | Algeria',
-      imageUrl: '/images/projects/1.png',
+      imageUrl: '${assetPrefix}/images/projects/1.png',
       subtitle: 'Telco App',
       category: 'Android, Huawei',
       description: 'Developed the YOOZ mobile app for Ooredoo Algeria using native Android (Java), with support for Android, and Huawei. Integrated RESTful APIs, analytics tools, and Unity features within a scalable MVM architecture.',
       fullDescription: 'YOOZ Ibiza is a premier telecommunications application developed for Ooredoo Algeria, offering users a seamless and feature-rich mobile experience. As a native Android application built with Java, the app delivers exceptional performance and reliability across the Android ecosystem, including specialized support for Huawei devices.\nThe development of YOOZ Ibiza focused on creating a robust architecture using the Model-View-Model (MVM) pattern, ensuring scalability and maintainability as new features are added. This architectural choice facilitates efficient data management and responsive user interfaces, key factors in providing a smooth telecom service experience.\nIntegration with RESTful APIs forms the backbone of the application, enabling real-time communication with Ooredoo\'s backend services. This allows users to access account information, manage services, track usage, and perform transactions securely from their mobile devices. The comprehensive API implementation ensures that all telecom services are accessible directly through the application interface.\nA standout feature of YOOZ Ibiza is its incorporation of Unity 3D elements, bringing interactive and engaging visual components to what would typically be a utilitarian telecom application. This innovative approach enhances user engagement and differentiates YOOZ from competitors in the telecommunications app market.\nAnalytics tools have been seamlessly integrated into the application architecture, providing valuable insights into user behavior, feature usage, and performance metrics. This data-driven approach allows for continuous improvement of the application based on actual user interactions and preferences.\nThe user interface, designed with Adobe XD, offers an intuitive and visually appealing experience that adheres to modern design principles while maintaining brand consistency with Ooredoo\'s visual identity. The UI implementation utilizes XML for layout design, ensuring compatibility across various Android devices and screen sizes.\nFor Huawei users, specialized integration with Huawei App Gallery Connect (AGC) services ensures full functionality even without Google Mobile Services, addressing the needs of a significant portion of the Algerian market using Huawei devices.\nYOOZ Ibiza represents a comprehensive telecom solution that balances functional utility with user experience, providing Ooredoo Algeria customers with a powerful tool to manage their telecommunications needs efficiently and effectively. The application\'s availability on both Google Play Store and Huawei AppGallery maximizes its reach across the Algerian mobile user base.',
       technologies: ['Native Android', 'Firebase', 'Huawei AGC', 'Unity 3D', 'JAVA', 'XML', 'Adobe XD', 'Android Studio', 'JIRA'],
-      images: ['/images/projects/1/6.jpg', '/images/projects/1/2.jpg', '/images/projects/1/4.jpg', '/images/projects/1/3.jpg', '/images/projects/1/5.jpg'],
+      images: ['${assetPrefix}/images/projects/1/6.jpg', '${assetPrefix}/images/projects/1/2.jpg', '/images/projects/1/4.jpg', '/images/projects/1/3.jpg', '/images/projects/1/5.jpg'],
       color: 'bg-blue-500',
       urls: [
         {
@@ -388,7 +392,7 @@ export default function Home() {
               className="absolute w-full h-full object-cover"
               style={{ filter: 'brightness(0.4)' }}
             >
-              <source src="/public/videos/background4.mp4" type="video/mp4" />
+              <source src="/videos/background4.mp4" type="video/mp4" />
             </video>
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 to-black/60"></div>
           </div>
