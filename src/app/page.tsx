@@ -49,7 +49,7 @@ export default function Home() {
     {
       id: 1,
       title: 'YOOZ Ibiza | Algeria',
-      imageUrl: 'https://github.com/Tharindu127/tharinduathapaththu.portfolio.io/blob/main/public/images/projects/1.png?raw=true',
+      imageUrl: 'https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/main/public/images/projects/1.png',
       subtitle: 'Telco App',
       category: 'Android, Huawei',
       description: 'Developed the YOOZ mobile app for Ooredoo Algeria using native Android (Java), with support for Android, and Huawei. Integrated RESTful APIs, analytics tools, and Unity features within a scalable MVM architecture.',
