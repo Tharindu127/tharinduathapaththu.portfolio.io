@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { Menu, X, Github, Download, Mail, ExternalLink, ChevronRight, Send, MapPin, Phone, Facebook, Instagram, TwitterIcon, LinkedinIcon, MailPlus } from 'lucide-react';
 import Image from 'next/image';
+import GitHubContributionGraph from './GitHubContributionGraph'; // Adjust the path as needed
+import GitLabContributionGraph from './GitLabContributionGraph'; // Adjust the path as needed
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
 
   useEffect(() => {
     // Simulating content loading
@@ -253,7 +255,7 @@ export default function Home() {
     },
   ];
 
-  const handleProjectClick = (project) => {
+  const handleProjectClick = (project: React.SetStateAction<Project | null>) => {
     setSelectedProject(project);
     document.body.style.overflow = 'hidden';
   };
@@ -263,12 +265,12 @@ export default function Home() {
     document.body.style.overflow = 'auto';
   };
 
-  const handleContactFormChange = (e) => {
+  const handleContactFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContactForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleContactSubmit = async (e) => {
+  const handleContactSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitStatus(null);
@@ -296,7 +298,6 @@ export default function Home() {
       setSubmitting(false);
     }
   };
-
 
   if (isLoading) {
     return (
@@ -520,16 +521,10 @@ export default function Home() {
                 <h2 className="text-3xl font-bold mb-2">About Me</h2>
                 <div className="w-16 h-1 bg-blue-500 mb-6"></div>
                 <p className="text-gray-300 mb-6">
-                  I&apos;m a passionate mobile software engineer with expertise in creating innovative,
-                  user-centered applications for iOS and Android platforms. With a strong foundation in
-                  multiple programming languages and frameworks, I specialize in developing seamless,
-                  efficient, and engaging mobile experiences.
+                  I&apos;m a mobile software engineer crafting innovative apps for iOS and Android. With skills in multiple languages and frameworks, I deliver efficient, engaging mobile experiences.
                 </p>
                 <p className="text-gray-300 mb-6">
-                  My approach combines technical excellence with creative problem-solving, allowing me to
-                  transform complex challenges into elegant solutions. I&apos;m particularly interested in
-                  pushing the boundaries of mobile technology through AR/VR experiences, AI integration,
-                  and intuitive user interfaces.
+                  I combine technical skill with creative problem-solving to transform challenges into elegant solutions, focusing on AR/VR, AI integration, and intuitive interfaces.
                 </p>
 
                 <div className="mb-8">
@@ -685,8 +680,8 @@ export default function Home() {
                   </div>
 
                   <div className="bg-gray-700/50 rounded-lg p-4 flex items-center justify-center">
-                    <div className="relative w-full" style={{ height: "100px" }}>
-                      <Image
+                    <div className="relative w-full" style={{ height: "210px" }}>
+                      {/* <Image
                         src="https://ghchart.rshah.org/2e7eea/Tharindu127"
                         alt="GitHub Contribution Graph"
                         fill
@@ -694,7 +689,8 @@ export default function Home() {
                         style={{ objectFit: 'contain' }}
                         unoptimized // No need for =true, just the prop
                         priority // Add priority to ensure it loads early
-                      />
+                      /> */}
+                      <GitHubContributionGraph />
                     </div>
                   </div>
                 </div>
@@ -742,8 +738,8 @@ export default function Home() {
                 </div>
 
                 <div className="bg-gray-700/50 rounded-lg p-4 flex items-center justify-center">
-                  <div className="relative w-full" style={{ height: "200px" }}>
-                    <Image
+                  <div className="relative w-full" style={{ height: "260px" }}>
+                    {/* <Image
                       src="/images/contributions.png"
                       alt="GitLab Contributions"
                       fill
@@ -752,7 +748,8 @@ export default function Home() {
                         objectFit: 'contain',
                         objectPosition: 'center'
                       }}
-                    />
+                    /> */}
+                    <GitLabContributionGraph />
                   </div>
                 </div>
 
