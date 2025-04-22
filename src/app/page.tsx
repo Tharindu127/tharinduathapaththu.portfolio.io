@@ -388,7 +388,7 @@ export default function Home() {
               className="absolute w-full h-full object-cover"
               style={{ filter: 'brightness(0.4)' }}
             >
-              <source src="/videos/background4.mp4" type="video/mp4" />
+              <source src="/public/videos/background4.mp4" type="video/mp4" />
             </video>
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 to-black/60"></div>
           </div>
