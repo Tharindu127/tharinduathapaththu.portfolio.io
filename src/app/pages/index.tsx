@@ -1,51 +1,58 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { NavItem, Project, Stats } from './types';
-import LoadingScreen from './components/ui/LoadingScreen';
-import Navbar from './components/layout/Navbar';
-import MobileMenu from './components/layout/MobileMenu';
-import Footer from './components/layout/Footer';
-import HeroSection from './components/home/HeroSection';
-import AboutSection from './components/home/AboutSection';
-import ProjectsSection from './components/home/ProjectsSection';
-import GitHubSection from './components/home/GitHubSection';
-import ContactSection from './components/home/ContactSection';
+import { NavItem, Project, Stats } from '../types';
+import LoadingScreen from '../components/ui/LoadingScreen';
+import Navbar from '../components/layout/Navbar';
+import MobileMenu from '../components/layout/MobileMenu';
+import Footer from '../components/layout/Footer';
+import HeroSection from '../components/home/HeroSection';
+import AboutSection from '../components/home/AboutSection';
+import ProjectsSection from '../components/home/ProjectsSection';
+import GitHubSection from '../components/home/GitHubSection';
+import ContactSection from '../components/home/ContactSection';
 
 // Import Firebase functions
-import { fetchProjects, fetchStats } from './firebase';
+import { fetchProjects, fetchStats } from '../firebase';
 
-// Define a type for raw data from Firebase without using 'any'
-type RawProjectData = {
-    id?: string | number;
-    title?: string;
-    imageUrl?: string;
-    subtitle?: string;
-    category?: string;
-    description?: string;
-    fullDescription?: string;
-    technologies?: string[];
-    images?: string[];
-    color?: string;
-    urls?: Array<{
-        link?: string;
-        type?: string;
-        isWorking?: boolean;
-    }>;
-} & Record<string, unknown>; // Type-safe alternative to [key: string]: any
-
-export default function HomePage() {
+export default function Home() {
     const [activeSection, setActiveSection] = useState('home');
     const [menuOpen, setMenuOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    // Initialize stats with default values to avoid null
     const [stats, setStats] = useState<Stats>({
         totalProjects: 0,
         totalContributions: 0,
         totalRepositories: 0
     });
+
     const [error, setError] = useState<string | null>(null);
 
+    // This is the section in your index.tsx that needs to be updated to fix the TypeScript errors
+
+    // Add this interface to your types/index.ts file
+    interface RawProjectData {
+        id?: string | number;
+        title?: string;
+        imageUrl?: string;
+        subtitle?: string;
+        category?: string;
+        description?: string;
+        fullDescription?: string;
+        technologies?: string[];
+        images?: string[];
+        color?: string;
+        urls?: Array<{
+            link?: string;
+            type?: string;
+            isWorking?: boolean;
+        }>;
+        [key: string]: string | number | boolean | object | undefined | null | Array<unknown>;
+    }
+
+    // Then in your index.tsx, update the useEffect:
     useEffect(() => {
         // Fetch data from Firebase
         const loadData = async () => {
@@ -78,7 +85,7 @@ export default function HomePage() {
                                 color: project.color || 'bg-blue-500',
                                 urls: Array.isArray(project.urls) ? project.urls.map(url => ({
                                     link: url.link || '#',
-                                    type: (url.type as string) || 'website',
+                                    type: url.type || 'website',
                                     isWorking: Boolean(url.isWorking)
                                 })) : []
                             };
@@ -89,7 +96,7 @@ export default function HomePage() {
                         Number(a.id) - Number(b.id)
                     );
 
-                    // Set projects state
+                    // Explicitly cast to Project[] after we've ensured all required properties exist
                     setProjects(sortedProjects as Project[]);
                 } else {
                     // Handle empty projects case
@@ -98,11 +105,10 @@ export default function HomePage() {
 
                 // Handle stats data
                 if (statsData && typeof statsData === 'object') {
-                    const typedStatsData = statsData as Record<string, unknown>;
                     setStats({
-                        totalProjects: Number(typedStatsData.totalProjects) || 0,
-                        totalContributions: Number(typedStatsData.totalContributions) || 0,
-                        totalRepositories: Number(typedStatsData.totalRepositories) || 0
+                        totalProjects: Number(statsData.totalProjects) || 0,
+                        totalContributions: Number(statsData.totalContributions) || 0,
+                        totalRepositories: Number(statsData.totalRepositories) || 0
                     });
                 }
 
@@ -173,8 +179,8 @@ export default function HomePage() {
                 setMenuOpen={setMenuOpen}
             />
 
-            {/* Main content */}
-            <div className="h-screen overflow-y-auto">
+            {/* Main content - Using scroll-snap for smooth section transitions */}
+            <div className="snap-y snap-mandatory h-screen overflow-y-auto">
                 <HeroSection
                     onViewWorkClick={() => setActiveSection('projects')}
                     onGetInTouchClick={() => setActiveSection('contact')}
