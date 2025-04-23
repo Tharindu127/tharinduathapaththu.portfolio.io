@@ -30,8 +30,6 @@ export default function Home() {
 
     const [error, setError] = useState<string | null>(null);
 
-    // This is the section in your index.tsx that needs to be updated to fix the TypeScript errors
-
     // Add this interface to your types/index.ts file
     interface RawProjectData {
         id?: string | number;
@@ -52,7 +50,6 @@ export default function Home() {
         [key: string]: string | number | boolean | object | undefined | null | Array<unknown>;
     }
 
-    // Then in your index.tsx, update the useEffect:
     useEffect(() => {
         // Fetch data from Firebase
         const loadData = async () => {
@@ -124,7 +121,7 @@ export default function Home() {
         loadData();
     }, []);
 
-    // Scroll to section when activeSection changes
+    // Scroll to section when activeSection changes from navigation click
     useEffect(() => {
         if (!isLoading) {
             const element = document.getElementById(activeSection);
@@ -133,6 +130,59 @@ export default function Home() {
             }
         }
     }, [activeSection, isLoading]);
+
+    // Add a scroll listener to update activeSection based on scroll position
+    useEffect(() => {
+        if (isLoading) return;
+
+        const handleScroll = () => {
+            // Get all section elements
+            const sections = ['home', 'about', 'projects', 'contact'];
+
+            // Find which section is currently in view
+            let currentSection = activeSection;
+
+            // Calculate which section is most visible in the viewport
+            let maxVisiblePercentage = 0;
+
+            sections.forEach(sectionId => {
+                const element = document.getElementById(sectionId);
+                if (!element) return;
+
+                const rect = element.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+
+                // Calculate how much of the section is visible in the viewport
+                const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+                const sectionHeight = rect.height;
+
+                // Calculate percentage of section that's visible
+                const visiblePercentage = sectionHeight > 0 ? (visibleHeight / sectionHeight) * 100 : 0;
+
+                // If this section has more visible area than the current max, update current section
+                if (visiblePercentage > maxVisiblePercentage && visiblePercentage > 10) {
+                    maxVisiblePercentage = visiblePercentage;
+                    currentSection = sectionId;
+                }
+            });
+
+            // Update active section state if it's different
+            if (currentSection !== activeSection) {
+                setActiveSection(currentSection);
+            }
+        };
+
+        // Add scroll event listener
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Initial check on mount
+        handleScroll();
+
+        // Clean up listener on unmount
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, [isLoading, activeSection]);
 
     const navItems: NavItem[] = [
         { id: 'home', label: 'Home' },
@@ -163,7 +213,7 @@ export default function Home() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
+        <div className="min-h-screen bg-gray-900 text-white overflow-x-hidden">
             {/* Navigation */}
             <Navbar
                 navItems={navItems}
@@ -180,7 +230,7 @@ export default function Home() {
             />
 
             {/* Main content - Using scroll-snap for smooth section transitions */}
-            <div className="snap-y snap-mandatory h-screen overflow-y-auto">
+            <div className="snap-y snap-mandatory h-screen overflow-y-auto overflow-x-hidden">
                 <HeroSection
                     onViewWorkClick={() => setActiveSection('projects')}
                     onGetInTouchClick={() => setActiveSection('contact')}

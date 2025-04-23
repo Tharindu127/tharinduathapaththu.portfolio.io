@@ -10,17 +10,40 @@ interface ProjectModalProps {
 }
 
 const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onImageClick }) => {
-    const DEFAULT_HEIGHT = 240; // Default image height (h-60)
+    const DESKTOP_HEIGHT = 1040; // Default image height for desktop
+    const MOBILE_HEIGHT = 240; // Default image height for mobile (h-60)
     const COLLAPSED_HEIGHT = 120; // Collapsed height when scrolled (h-30)
-    const [imageHeight, setImageHeight] = useState(DEFAULT_HEIGHT);
+
+    const [imageHeight, setImageHeight] = useState(MOBILE_HEIGHT);
+    const [isMobile, setIsMobile] = useState(true);
     const contentRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
+
+    // Check window size and set appropriate height
+    useEffect(() => {
+        const checkScreenSize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            setImageHeight(mobile ? MOBILE_HEIGHT : DESKTOP_HEIGHT);
+        };
+
+        // Initial check
+        checkScreenSize();
+
+        // Listen for resize events
+        window.addEventListener('resize', checkScreenSize);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('resize', checkScreenSize);
+        };
+    }, []);
 
     // Reset scroll position to top and reset image height
     const resetScroll = () => {
         if (contentRef.current) {
             contentRef.current.scrollTop = 0;
-            setImageHeight(DEFAULT_HEIGHT);
+            setImageHeight(isMobile ? MOBILE_HEIGHT : DESKTOP_HEIGHT);
             isScrolling.current = false;
         }
     };
@@ -34,7 +57,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onImageCl
 
             // If we're at the top, reset the image height
             if (scrollPosition === 0) {
-                setImageHeight(DEFAULT_HEIGHT);
+                setImageHeight(isMobile ? MOBILE_HEIGHT : DESKTOP_HEIGHT);
                 isScrolling.current = false;
             }
             // If we start scrolling, immediately collapse the image to the smaller height
@@ -54,7 +77,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onImageCl
                 contentElement.removeEventListener('scroll', handleScroll);
             }
         };
-    }, []);
+    }, [isMobile]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn" onClick={onClose}>

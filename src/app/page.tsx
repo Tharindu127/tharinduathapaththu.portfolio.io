@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavItem, Project, Stats } from './types';
 import LoadingScreen from './components/ui/LoadingScreen';
 import Navbar from './components/layout/Navbar';
@@ -45,6 +45,9 @@ export default function HomePage() {
         totalRepositories: 0
     });
     const [error, setError] = useState<string | null>(null);
+
+    // Content container ref for scrolling
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // Fetch data from Firebase
@@ -118,15 +121,18 @@ export default function HomePage() {
         loadData();
     }, []);
 
-    // Scroll to section when activeSection changes
-    useEffect(() => {
-        if (!isLoading) {
-            const element = document.getElementById(activeSection);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+    // Handle navigation click and animate section transition
+    const navigateToSection = (sectionId: string) => {
+        setActiveSection(sectionId);
+
+        // Scroll to top of content area
+        if (contentRef.current) {
+            contentRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
-    }, [activeSection, isLoading]);
+    };
 
     const navItems: NavItem[] = [
         { id: 'home', label: 'Home' },
@@ -157,39 +163,78 @@ export default function HomePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
+        <div className="flex flex-col min-h-screen bg-gray-900 text-white overflow-hidden">
             {/* Navigation */}
             <Navbar
                 navItems={navItems}
                 activeSection={activeSection}
-                setActiveSection={setActiveSection}
+                setActiveSection={navigateToSection}
             />
 
             <MobileMenu
                 navItems={navItems}
                 activeSection={activeSection}
-                setActiveSection={setActiveSection}
+                setActiveSection={navigateToSection}
                 menuOpen={menuOpen}
                 setMenuOpen={setMenuOpen}
             />
 
-            {/* Main content */}
-            <div className="h-screen overflow-y-auto">
-                <HeroSection
-                    onViewWorkClick={() => setActiveSection('projects')}
-                    onGetInTouchClick={() => setActiveSection('contact')}
-                />
+            {/* Main content with sections */}
+            <div
+                ref={contentRef}
+                className="flex-grow overflow-y-auto scroll-smooth"
+                style={{ scrollbarWidth: 'none' }} // Hide scrollbar for Firefox
+            >
+                {/* Apply CSS transitions for smooth section transitions */}
+                <div className="space-y-0">
+                    <div
+                        id="home"
+                        className={`transition-all duration-700 ease-in-out ${activeSection === 'home'
+                                ? 'opacity-100 max-h-screen'
+                                : 'opacity-0 max-h-0 overflow-hidden'
+                            }`}
+                    >
+                        <HeroSection
+                            onViewWorkClick={() => navigateToSection('projects')}
+                            onGetInTouchClick={() => navigateToSection('contact')}
+                        />
+                    </div>
 
-                <AboutSection />
+                    <div
+                        id="about"
+                        className={`transition-all duration-700 ease-in-out ${activeSection === 'about'
+                                ? 'opacity-100 max-h-screen'
+                                : 'opacity-0 max-h-0 overflow-hidden'
+                            }`}
+                    >
+                        <AboutSection />
+                    </div>
 
-                <ProjectsSection projects={projects} />
+                    <div
+                        id="projects"
+                        className={`transition-all duration-700 ease-in-out ${activeSection === 'projects'
+                                ? 'opacity-100 max-h-screen'
+                                : 'opacity-0 max-h-0 overflow-hidden'
+                            }`}
+                    >
+                        <ProjectsSection projects={projects} />
+                        <GitHubSection stats={stats} />
+                    </div>
 
-                <GitHubSection stats={stats} />
-
-                <ContactSection />
-
-                <Footer />
+                    <div
+                        id="contact"
+                        className={`transition-all duration-700 ease-in-out ${activeSection === 'contact'
+                                ? 'opacity-100 max-h-screen'
+                                : 'opacity-0 max-h-0 overflow-hidden'
+                            }`}
+                    >
+                        <ContactSection />
+                    </div>
+                </div>
             </div>
+
+            {/* Footer - Always visible */}
+            <Footer />
         </div>
     );
 }

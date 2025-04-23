@@ -4,24 +4,26 @@ import ContactForm from '../ui/ContactForm';
 
 const ContactSection: React.FC = () => {
     return (
-        <section id="contact" className="min-h-screen flex items-center justify-center py-20 snap-start">
-            <div className="container mx-auto px-6">
+        <section id="contact" className="min-h-screen flex items-center justify-center py-20 pt-30 snap-start overflow-hidden">
+            <div className="container mx-auto px-4 w-full">
                 <h2 className="text-4xl font-bold mb-2 text-center animate-fadeIn">Get In Touch</h2>
                 <div className="w-24 h-1 bg-blue-500 mx-auto mb-8 animate-expand"></div>
                 <p className="text-center text-gray-300 mb-16 max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                     Have a project in mind? Looking to collaborate or hire me? Feel free to reach out using the form below and I&apos;ll get back to you as soon as possible.
                 </p>
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className="bg-gray-800/50 backdrop-blur-md rounded-xl p-8 animate-slideUp" style={{ animationDelay: '0.3s' }}>
+                <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start">
+                    <div className="bg-gray-800/50 backdrop-blur-md rounded-xl p-6 md:p-8 animate-slideUp w-full" style={{ animationDelay: '0.3s' }}>
                         <h3 className="text-2xl font-bold mb-6">Send Me a Message</h3>
                         <ContactForm />
                     </div>
 
-                    <div className="animate-slideUp" style={{ animationDelay: '0.5s' }}>
+                    <div className="animate-slideUp w-full" style={{ animationDelay: '0.5s' }}>
                         <div className="relative">
-                            <div className="absolute -top-12 -left-12 w-24 h-24 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
-                            <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-purple-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                            <div className="relative bg-gray-800/30 backdrop-blur-md rounded-xl p-8 border border-white/5">
+                            {/* Position these more carefully to avoid overflow */}
+                            <div className="absolute top-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+                            <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+                            <div className="relative bg-gray-800/30 backdrop-blur-md rounded-xl p-6 md:p-8 border border-white/5">
                                 <h3 className="text-2xl font-bold mb-6">Let&apos;s Connect</h3>
                                 <p className="text-gray-300 mb-8">
                                     Whether you have a specific project in mind or just want to say hello, I&apos;m always open to discussing new opportunities and ideas.
@@ -87,7 +89,7 @@ const ContactInfoItem: React.FC<ContactInfoItemProps> = ({
             <div className={`w-12 h-12 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0`}>
                 {icon}
             </div>
-            <div className={truncate ? "overflow-hidden max-w-[180px] sm:max-w-[220px] md:max-w-[300px]" : ""}>
+            <div className={`${truncate ? "overflow-hidden" : ""} flex-1`}>
                 <p className="text-gray-400 text-sm">{label}</p>
                 <p className={`text-white ${truncate ? "truncate" : ""}`}>{value}</p>
             </div>

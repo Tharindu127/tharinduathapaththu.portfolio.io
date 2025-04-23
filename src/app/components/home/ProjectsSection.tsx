@@ -31,7 +31,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) => {
     };
 
     return (
-        <section id="projects" className="min-h-screen flex items-center justify-center py-20 snap-start">
+        <section id="projects" className="min-h-screen flex items-center justify-center py-20 pt-30 snap-start">
             <div className="container mx-auto px-6">
                 <h2 className="text-4xl font-bold mb-2 text-center animate-fadeIn">My Projects</h2>
                 <div className="w-24 h-1 bg-blue-500 mx-auto mb-16 animate-expand"></div>
