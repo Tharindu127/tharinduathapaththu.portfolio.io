@@ -28,7 +28,7 @@ const LoadingScreen: React.FC = () => {
                                 }`}
                         >
                             <Image
-                                src="/favicon.ico"
+                                src="https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/refs/heads/main/src/app/favicon.ico"
                                 alt="Logo"
                                 fill
                                 sizes="70px"
