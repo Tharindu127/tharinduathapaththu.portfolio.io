@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Your Portfolio",
-  description: "Mobile Engineer Portfolio",
+  title: "Tharindu Athapaththu",
+  description: "Software Engineer II - Mobile | Portfolio",
 };
 
 export default function RootLayout({
