@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
                         <span>©</span>
                         <span className="mx-1">{new Date().getFullYear()} Tharindu Athapaththu. All rights reserved.</span>
                         <Image
-                            src="/favicon.ico"
+                            src="https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/refs/heads/main/src/app/favicon.ico"
                             alt="Copyright icon"
                             width={16}
                             height={16}

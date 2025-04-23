@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ navItems, activeSection, setActiveSecti
                             className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/20 transition-all duration-300"
                         >
                             <Image
-                                src="/favicon.ico"
+                                src="https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/refs/heads/main/src/app/favicon.ico"
                                 alt="Logo"
                                 width={24}
                                 height={24}

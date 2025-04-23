@@ -19,7 +19,8 @@ const AboutSection: React.FC = () => {
         'Adobe XD', 'CleverTap', 'Windows', 'macOS', 'iOS',
         'Android', 'Web', 'HarmonyOS', 'Google Play Console',
         'MS App Center', 'Apple Connect', 'Huawei AGC',
-        'Google Cloud', 'Huawei Cloud',
+        'Google Cloud', 'Huawei Cloud', 'Next.js', 'React', 'TypeScript', 'Tailwind CSS',
+        'Lucide', 'React Hooks'
     ];
 
     return (
