@@ -10,7 +10,7 @@ interface ProjectModalProps {
 }
 
 const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onImageClick }) => {
-    const DEFAULT_HEIGHT = 1140; // Default image height (h-60)
+    const DEFAULT_HEIGHT = 240; // Default image height (h-60)
     const COLLAPSED_HEIGHT = 120; // Collapsed height when scrolled (h-30)
     const [imageHeight, setImageHeight] = useState(DEFAULT_HEIGHT);
     const contentRef = useRef<HTMLDivElement>(null);
