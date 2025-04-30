@@ -1,59 +1,42 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, MailPlus } from 'lucide-react';
+import { Download, MailPlus, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
-import TechBadge from '../ui/TechBadge'; // Using our enhanced TechBadge component
+import TechBadge from '../ui/TechBadge';
 import ImageCarousel from '../ui/ImageCarousel';
 
-const AboutSection: React.FC = () => {
-    // Sample profile images for the carousel
-    const profileImages = [
-        "https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/main/public/FullSizeRender.jpg",
-        "https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/main/public/pro2.JPG"
-    ];
+// Define the prop types to match the parent component's state
+interface AboutSectionProps {
+    aboutData: {
+        profileImages?: Array<{
+            url: string;
+            alt: string;
+        }>;
+        paragraphs?: string[];
+        documents?: {
+            cv: string;
+            resume: string;
+        };
+        emailAddress?: string;
+        description?: string;
+    } | null;
+    technologies: Array<{
+        id?: string;
+        name: string;
+        level: number;
+        category: string;
+        icon?: string;
+        color?: string;
+    }>;
+    categories: string[];
+}
 
-    // Technologies with skill levels
-    const technologies = [
-        { name: 'Swift', level: 30 },
-        { name: 'Flutter', level: 90 },
-        { name: 'Firebase', level: 70 },
-        { name: 'Dart', level: 95 },
-        { name: 'Java', level: 80 },
-        { name: 'Python', level: 50 },
-        { name: 'HTML', level: 70 },
-        { name: 'CSS', level: 70 },
-        { name: 'PHP', level: 65 },
-        { name: 'Native Android', level: 85 },
-        { name: 'Android Studio', level: 95 },
-        { name: 'Xcode', level: 60 },
-        { name: 'Visual Studio Code', level: 75 },
-        { name: 'PyCharm', level: 30 },
-        { name: 'IntelliJ', level: 95 },
-        { name: 'MS Office', level: 95 },
-        { name: 'JIRA', level: 90 },
-        { name: 'GitLab', level: 90 },
-        { name: 'Postman', level: 80 },
-        { name: 'Figma', level: 95 },
-        { name: 'Adobe XD', level: 95 },
-        { name: 'CleverTap', level: 65 },
-        { name: 'Windows', level: 95 },
-        { name: 'macOS', level: 95 },
-        { name: 'iOS', level: 95 },
-        { name: 'Android', level: 95 },
-        { name: 'Web', level: 80 },
-        { name: 'HarmonyOS', level: 75 },
-        { name: 'Google Play Console', level: 85 },
-        { name: 'MS App Center', level: 90 },
-        { name: 'Apple Connect', level: 80 },
-        { name: 'Huawei AGC', level: 75 },
-        { name: 'Google Cloud', level: 50 },
-        { name: 'Huawei Cloud', level: 65 },
-        { name: 'Next.js', level: 70 },
-        { name: 'React', level: 70 },
-        { name: 'TypeScript', level: 70 },
-        { name: 'Tailwind CSS', level: 60 },
-        { name: 'Lucide', level: 60 },
-        { name: 'React Hooks', level: 60 }
-    ];
+const AboutSection: React.FC<AboutSectionProps> = ({ aboutData, technologies, categories }) => {
+    // Add debug logging to check the technologies
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log("AboutSection technologies:", technologies.slice(0, 3));
+        }
+    }, [technologies]);
 
     // State for category filtering
     const [activeCategory, setActiveCategory] = useState<string>('All');
@@ -61,29 +44,18 @@ const AboutSection: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // Mapping technologies to categories
-    const categoryMap: Record<string, string[]> = {
-        'Languages': ['Swift', 'Dart', 'Java', 'Python', 'HTML', 'CSS', 'PHP', 'TypeScript'],
-        'Frameworks': ['Flutter', 'React', 'Next.js', 'Tailwind CSS', 'React Hooks'],
-        'Design': ['Figma', 'Adobe XD'],
-        'Tools': ['Android Studio', 'Xcode', 'Visual Studio Code', 'PyCharm', 'IntelliJ', 'MS Office', 'JIRA', 'GitLab', 'Postman', 'CleverTap', 'Google Play Console', 'MS App Center', 'Apple Connect', 'Huawei AGC'],
-        'Platforms': ['Firebase', 'Native Android', 'Windows', 'macOS', 'iOS', 'Android', 'Web', 'HarmonyOS', 'Google Cloud', 'Huawei Cloud', 'Lucide']
-    };
-
-    // Technology categories
-    const categories = [
-        'All',
-        'Languages',
-        'Frameworks',
-        'Design',
-        'Tools',
-        'Platforms'
-    ];
+    // Extract data from props with default values for safety
+    const profileImages = aboutData?.profileImages?.map(img => img.url) || [];
+    const imageAlts = aboutData?.profileImages?.map(img => img.alt) || [];
+    const paragraphs = aboutData?.paragraphs || [];
+    const documents = aboutData?.documents || { cv: '', resume: '' };
+    const emailAddress = aboutData?.emailAddress || '';
+    const description = aboutData?.description || '';
 
     // Filter technologies based on active category
     const filteredTechnologies = activeCategory === 'All'
         ? technologies
-        : technologies.filter(tech => categoryMap[activeCategory]?.includes(tech.name));
+        : technologies.filter(tech => tech.category === activeCategory);
 
     // Set initial container height on first render
     useEffect(() => {
@@ -112,6 +84,16 @@ const AboutSection: React.FC = () => {
         }
     };
 
+    // Show loading placeholder if data isn't available yet
+    if (!aboutData) {
+        return (
+            <section id="about" className="min-h-screen flex flex-col justify-center items-center py-16 pt-30 snap-start">
+                <Loader2 size={48} className="animate-spin text-blue-500" />
+                <p className="mt-4 text-gray-300">Loading profile data...</p>
+            </section>
+        );
+    }
+
     return (
         <section id="about" className="min-h-screen flex flex-col justify-center py-16 pt-30 snap-start relative overflow-hidden">
             {/* Background bubbles */}
@@ -128,37 +110,37 @@ const AboutSection: React.FC = () => {
                     <div className="animate-fadeIn">
                         <div className="relative">
                             {/* Carousel */}
-                            <ImageCarousel images={profileImages} autoplaySpeed={6000} />
+                            {profileImages.length > 0 && (
+                                <ImageCarousel
+                                    images={profileImages}
+                                    alts={imageAlts}
+                                    autoplaySpeed={6000}
+                                />
+                            )}
 
-                            {/* Blurred light animations - adjusted positioning to avoid overflow */}
+                            {/* Blurred light animations */}
                             <div className="absolute top-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
                             <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-xl animate-pulse"
                                 style={{ animationDelay: '1s' }}></div>
 
                             <div className="absolute bottom-0 left-0 right-0 p-6 z-30">
                                 <div className="flex gap-4">
-                                    <a
-                                        href="/FullSizeRender.jpg"
-                                        className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"
-                                        download
-                                        aria-label="Download profile picture"
-                                    >
-                                        <Download size={24} />
-                                    </a>
-                                    <a
-                                        href="mailto:tharinduathapaththuhewage@gmail.com"
-                                        className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"
-                                        aria-label="Send email"
-                                    >
-                                        <MailPlus size={24} />
-                                    </a>
+                                    {emailAddress && (
+                                        <a
+                                            href={`mailto:${emailAddress}`}
+                                            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all"
+                                            aria-label="Send email"
+                                        >
+                                            <MailPlus size={24} />
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="animate-slideUp relative" style={{ animationDelay: '0.2s' }}>
-                        {/* Blurred light animations - adjusted positioning */}
+                        {/* Blurred light animations */}
                         <div className="absolute top-0 right-0 w-28 h-28 bg-blue-500/15 rounded-full blur-xl animate-pulse"
                             style={{ animationDelay: '0.5s' }}></div>
                         <div className="absolute bottom-0 left-0 w-20 h-20 bg-purple-500/15 rounded-full blur-xl animate-pulse"
@@ -167,31 +149,36 @@ const AboutSection: React.FC = () => {
                         <div className="relative">
                             <h2 className="text-3xl font-bold mb-2">About Me</h2>
                             <div className="w-16 h-1 bg-blue-500 mb-6"></div>
-                            <p className="text-gray-300 mb-6">
-                                I&apos;m a mobile software engineer crafting innovative apps for iOS and Android. With skills in multiple languages and frameworks, I deliver efficient, engaging mobile experiences.
-                            </p>
-                            <p className="text-gray-300 mb-6">
-                                I combine technical skill with creative problem-solving to transform challenges into elegant solutions, focusing on AR/VR, AI integration, and intuitive interfaces.
-                            </p>
+
+                            {/* Paragraphs from Firebase */}
+                            {paragraphs.map((paragraph, index) => (
+                                <p key={index} className="text-gray-300 mb-6">
+                                    {paragraph}
+                                </p>
+                            ))}
 
                             <div className="flex flex-wrap gap-4 mt-6">
-                                <Button
-                                    onClick={() => window.open('https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/main/public/files/cv_tharindu_athapaththu.pdf', '_blank')}
-                                    className="px-6 py-3"
-                                    variant="primary"
-                                >
-                                    Download CV
-                                    <Download size={18} />
-                                </Button>
+                                {documents.cv && (
+                                    <Button
+                                        onClick={() => window.open(documents.cv, '_blank')}
+                                        className="px-6 py-3"
+                                        variant="primary"
+                                    >
+                                        Download CV
+                                        <Download size={18} strokeWidth={2.5} />
+                                    </Button>
+                                )}
 
-                                <Button
-                                    onClick={() => window.open('https://raw.githubusercontent.com/Tharindu127/tharinduathapaththu.portfolio.io/main/public/files/resume_tharindu_athapaththu.pdf', '_blank')}
-                                    className="px-6 py-3"
-                                    variant="primary"
-                                >
-                                    Download Resume
-                                    <Download size={18} />
-                                </Button>
+                                {documents.resume && (
+                                    <Button
+                                        onClick={() => window.open(documents.resume, '_blank')}
+                                        className="px-6 py-3"
+                                        variant="primary"
+                                    >
+                                        Download Resume
+                                        <Download size={18} strokeWidth={2.5} />
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -199,7 +186,7 @@ const AboutSection: React.FC = () => {
 
                 {/* Technology section with smooth height animation */}
                 <div className="animate-fadeIn relative" style={{ animationDelay: '0.3s' }}>
-                    {/* Decorative elements - adjusted positioning */}
+                    {/* Decorative elements */}
                     <div className="absolute top-0 left-1/4 w-24 h-24 bg-indigo-500/15 rounded-full blur-xl animate-pulse"
                         style={{ animationDelay: '1.2s' }}></div>
                     <div className="absolute bottom-0 right-1/3 w-32 h-32 bg-teal-500/15 rounded-full blur-xl animate-pulse"
@@ -236,21 +223,26 @@ const AboutSection: React.FC = () => {
                             {/* Content wrapper with ref for measuring */}
                             <div ref={contentRef}>
                                 {/* Technology badges */}
-                                <div className="flex flex-wrap gap-3">
-                                    {filteredTechnologies.map((tech) => (
-                                        <TechBadge
-                                            key={tech.name}
-                                            tech={tech.name}
-                                            skillLevel={tech.level}
-                                            size="md"
-                                        />
-                                    ))}
-                                </div>
+                                {technologies.length > 0 ? (
+                                    <div className="flex flex-wrap gap-3 p-2">
+                                        {filteredTechnologies.map((tech) => (
+                                            <TechBadge
+                                                key={tech.id || tech.name}
+                                                tech={tech.name}
+                                                skillLevel={tech.level}
+                                                color={tech.color}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-center items-center p-8">
+                                        <p className="text-gray-400">Loading technologies...</p>
+                                    </div>
+                                )}
 
                                 {/* Brief description */}
                                 <p className="text-gray-400 text-sm mt-6 max-w-4xl">
-                                    My technical journey spans mobile app development, web technologies, cloud platforms, and design tools.
-                                    I&apos;m passionate about building with cutting-edge technologies and continuously expanding my expertise.
+                                    {description || "My technical journey spans mobile app development, web technologies, cloud platforms, and design tools. I'm passionate about building with cutting-edge technologies and continuously expanding my expertise."}
                                 </p>
                             </div>
                         </div>

@@ -6,17 +6,13 @@ import {
 } from 'lucide-react';
 
 interface TechBadgeProps {
-    tech: string;
-    className?: string;
-    size?: 'sm' | 'md' | 'lg';
-    skillLevel?: number; // Skill level as percentage (0-100)
-}
-
-// Define interface for our tech icons
-interface TechIconInfo {
-    icon: JSX.Element;
-    defaultSkill: number;
-    gradientColors: string; // Combined gradient classes
+    tech: string;                // Technology name
+    className?: string;          // Optional additional classes
+    size?: 'sm' | 'md' | 'lg';   // Size variant
+    skillLevel?: number;         // Skill level from Firebase
+    color?: string;              // Color from Firebase (hex code)
+    icon?: string;               // Icon name from Firebase
+    category?: string;           // Category from Firebase
 }
 
 // Custom icon components
@@ -41,7 +37,6 @@ const CustomIcons = {
             <line x1="14" x2="14" y1="2" y2="4"></line>
         </svg>
     ),
-
     FileText: (props: LucideProps) => (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -62,7 +57,6 @@ const CustomIcons = {
             <line x1="10" x2="8" y1="9" y2="9"></line>
         </svg>
     ),
-
     Activity: (props: LucideProps) => (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -85,277 +79,155 @@ const TechBadge: React.FC<TechBadgeProps> = ({
     tech,
     className = '',
     size = 'md',
-    skillLevel
+    skillLevel,
+    color,
+    icon,
+    category
 }) => {
-    // State for interactions
+    // States for animation
     const [isHovering, setIsHovering] = useState(false);
     const [isTouched, setIsTouched] = useState(false);
+    const [isActiveWithDelay, setIsActiveWithDelay] = useState(false);
     const [fillWidth, setFillWidth] = useState(0);
     const [showPercentage, setShowPercentage] = useState(false);
 
-    // Refs
-    const badgeRef = useRef<HTMLDivElement>(null);
+    // Refs for timeouts
     const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Size mapping
-    const sizes = {
-        sm: { classes: 'px-3 py-1 text-xs gap-1', iconSize: 12 },
-        md: { classes: 'px-4 py-1.5 text-sm gap-1.5', iconSize: 16 },
-        lg: { classes: 'px-5 py-2 gap-2', iconSize: 20 }
+    // Size variants mapping
+    const sizeClasses = {
+        sm: 'px-3 py-1 text-xs gap-1',
+        md: 'px-4 py-1.5 text-sm gap-1.5',
+        lg: 'px-5 py-2 gap-2'
     };
 
-    // Function to create icon component with correct size
-    const createIcon = (IconComponent: React.ComponentType<LucideProps> | ((props: LucideProps) => JSX.Element)) => {
-        return <IconComponent size={sizes[size].iconSize} />;
+    const iconSizes = {
+        sm: 12,
+        md: 16,
+        lg: 20
     };
 
-    // Tech icon mapping - centralized to avoid duplication
-    const techData: Record<string, TechIconInfo> = {
-        // Programming Languages
-        'Swift': {
-            icon: createIcon(Code),
-            defaultSkill: 30,
-            gradientColors: 'from-orange-400 to-orange-600'
-        },
-        'Dart': {
-            icon: createIcon(ChevronUp),
-            defaultSkill: 80,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'Java': {
-            icon: createIcon(CustomIcons.Coffee),
-            defaultSkill: 75,
-            gradientColors: 'from-red-500 to-red-700'
-        },
-        'Python': {
-            icon: createIcon(FileCode),
-            defaultSkill: 70,
-            gradientColors: 'from-blue-500 to-blue-700'
-        },
-        'TypeScript': {
-            icon: createIcon(FileCode),
-            defaultSkill: 80,
-            gradientColors: 'from-blue-500 to-blue-700'
-        },
+    // Create a slightly darker version of a hex color
+    const createDarkerColor = (hexColor: string): string => {
+        // Remove # if present
+        hexColor = hexColor.replace(/^#/, '');
 
-        // Frontend
-        'HTML': {
-            icon: createIcon(Code),
-            defaultSkill: 95,
-            gradientColors: 'from-orange-500 to-orange-700'
-        },
-        'CSS': {
-            icon: createIcon(Brush),
-            defaultSkill: 90,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'React': {
-            icon: createIcon(Globe),
-            defaultSkill: 85,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'React Hooks': {
-            icon: createIcon(Link),
-            defaultSkill: 85,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'Tailwind CSS': {
-            icon: createIcon(Brush),
-            defaultSkill: 90,
-            gradientColors: 'from-blue-300 to-blue-500'
-        },
-        'Next.js': {
-            icon: createIcon(Layout),
-            defaultSkill: 80,
-            gradientColors: 'from-gray-800 to-black'
-        },
+        // Parse the hex components
+        let r = parseInt(hexColor.substring(0, 2), 16);
+        let g = parseInt(hexColor.substring(2, 4), 16);
+        let b = parseInt(hexColor.substring(4, 6), 16);
 
-        // Backend
-        'PHP': {
-            icon: createIcon(Server),
-            defaultSkill: 65,
-            gradientColors: 'from-purple-500 to-purple-700'
-        },
-        'Firebase': {
-            icon: createIcon(Database),
-            defaultSkill: 90,
-            gradientColors: 'from-yellow-400 to-yellow-600'
-        },
+        // Darken each component by 20%
+        r = Math.floor(r * 0.8);
+        g = Math.floor(g * 0.8);
+        b = Math.floor(b * 0.8);
 
-        // Mobile
-        'Flutter': {
-            icon: createIcon(Box),
-            defaultSkill: 80,
-            gradientColors: 'from-blue-300 to-blue-500'
-        },
-        'iOS': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 85,
-            gradientColors: 'from-gray-400 to-gray-600'
-        },
-        'Android': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 90,
-            gradientColors: 'from-green-400 to-green-600'
-        },
-        'Native Android': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 85,
-            gradientColors: 'from-green-400 to-green-600'
-        },
-        'HarmonyOS': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 65,
-            gradientColors: 'from-orange-400 to-orange-600'
-        },
+        // Convert back to hex
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    };
 
-        // Tools & IDEs
-        'Android Studio': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 90,
-            gradientColors: 'from-green-500 to-green-700'
-        },
-        'Xcode': {
-            icon: createIcon(Aperture),
-            defaultSkill: 85,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'Visual Studio Code': {
-            icon: createIcon(Code),
-            defaultSkill: 95,
-            gradientColors: 'from-blue-500 to-blue-700'
-        },
-        'PyCharm': {
-            icon: createIcon(FileCode),
-            defaultSkill: 75,
-            gradientColors: 'from-yellow-500 to-yellow-700'
-        },
-        'IntelliJ': {
-            icon: createIcon(FileCode),
-            defaultSkill: 80,
-            gradientColors: 'from-purple-400 to-purple-600'
-        },
-        'JIRA': {
-            icon: createIcon(Layout),
-            defaultSkill: 80,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'GitLab': {
-            icon: createIcon(Github),
-            defaultSkill: 85,
-            gradientColors: 'from-orange-500 to-orange-700'
-        },
-        'Postman': {
-            icon: createIcon(MessageSquare),
-            defaultSkill: 80,
-            gradientColors: 'from-orange-400 to-orange-600'
-        },
-        'Figma': {
-            icon: createIcon(Figma),
-            defaultSkill: 75,
-            gradientColors: 'from-purple-400 to-purple-600'
-        },
-        'Adobe XD': {
-            icon: createIcon(PenTool),
-            defaultSkill: 70,
-            gradientColors: 'from-pink-500 to-pink-700'
-        },
-        'CleverTap': {
-            icon: createIcon(CustomIcons.Activity),
-            defaultSkill: 75,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
+    // Function to get background gradient based on color
+    const getGradientStyle = (): React.CSSProperties => {
+        if (color && color.startsWith('#')) {
+            const darkerColor = createDarkerColor(color);
+            return {
+                background: `linear-gradient(to right, ${color}, ${darkerColor})`
+            };
+        }
 
-        // Platforms & Services
-        'Windows': {
-            icon: createIcon(Monitor),
-            defaultSkill: 90,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'macOS': {
-            icon: createIcon(Monitor),
-            defaultSkill: 85,
-            gradientColors: 'from-gray-400 to-gray-600'
-        },
-        'Web': {
-            icon: createIcon(Globe),
-            defaultSkill: 80,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'Google Play Console': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 85,
-            gradientColors: 'from-green-400 to-green-600'
-        },
-        'MS App Center': {
-            icon: createIcon(Monitor),
-            defaultSkill: 70,
-            gradientColors: 'from-blue-400 to-blue-600'
-        },
-        'Apple Connect': {
-            icon: createIcon(Smartphone),
-            defaultSkill: 80,
-            gradientColors: 'from-gray-400 to-gray-600'
-        },
-        'Huawei AGC': {
-            icon: createIcon(Cloud),
-            defaultSkill: 65,
-            gradientColors: 'from-red-400 to-red-600'
-        },
-        'Google Cloud': {
-            icon: createIcon(Cloud),
-            defaultSkill: 75,
-            gradientColors: 'from-blue-300 to-blue-500'
-        },
-        'Huawei Cloud': {
-            icon: createIcon(Cloud),
-            defaultSkill: 65,
-            gradientColors: 'from-red-300 to-red-500'
-        },
+        // Default blue gradient if no color provided
+        return {
+            background: 'linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to))'
+        };
+    };
 
-        // Office
-        'MS Office': {
-            icon: createIcon(CustomIcons.FileText),
-            defaultSkill: 85,
-            gradientColors: 'from-red-400 to-red-600'
-        },
-        'Lucide': {
-            icon: createIcon(PenTool),
-            defaultSkill: 75,
-            gradientColors: 'from-blue-400 to-blue-600'
+    // Map of icon name to component
+    const iconMap: Record<string, React.ComponentType<LucideProps> | ((props: LucideProps) => JSX.Element)> = {
+        'code': Code,
+        'database': Database,
+        'server': Server,
+        'brush': Brush,
+        'monitor': Monitor,
+        'link': Link,
+        'layout': Layout,
+        'globe': Globe,
+        'github': Github,
+        'fileCode': FileCode,
+        'figma': Figma,
+        'cloud': Cloud,
+        'box': Box,
+        'aperture': Aperture,
+        'penTool': PenTool,
+        'chevronUp': ChevronUp,
+        'smartphone': Smartphone,
+        'messageSquare': MessageSquare,
+        'coffee': CustomIcons.Coffee,
+        'fileText': CustomIcons.FileText,
+        'activity': CustomIcons.Activity
+    };
+
+    // Get icon component based on icon prop
+    const getIconComponent = () => {
+        const iconName = icon?.toLowerCase() || '';
+        const IconComponent = iconMap[iconName] || Code; // Fallback to Code icon
+        return <IconComponent size={iconSizes[size]} />;
+    };
+
+    // Get Tailwind gradient classes based on category
+    const getGradientClasses = (): string => {
+        const categoryMap: Record<string, string> = {
+            'Languages': 'from-blue-400 to-blue-600',
+            'Frameworks': 'from-green-400 to-green-600',
+            'Design': 'from-purple-400 to-purple-600',
+            'Tools': 'from-yellow-400 to-yellow-600',
+            'Platforms': 'from-red-400 to-red-600'
+        };
+
+        return categoryMap[category || ''] || 'from-gray-400 to-gray-600';
+    };
+
+    // Check if badge is active
+    const isActive = isHovering || isTouched;
+
+    // Get the final skill level
+    const finalSkillLevel = skillLevel !== undefined ? skillLevel : 70;
+
+    // Handle hover events
+    const handleMouseEnter = () => {
+        setIsHovering(true);
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovering(false);
+    };
+
+    // Handle touch events
+    const handleTouchStart = () => {
+        setIsTouched(true);
+        if (touchTimeoutRef.current) {
+            clearTimeout(touchTimeoutRef.current);
         }
     };
 
-    // Get the tech info or use default
-    const techInfo = techData[tech] || {
-        icon: createIcon(Code),
-        defaultSkill: 70,
-        gradientColors: 'from-gray-400 to-gray-600'
+    const handleTouchEnd = () => {
+        setIsTouched(false);
     };
 
-    const finalSkillLevel = skillLevel !== undefined ? skillLevel : techInfo.defaultSkill;
-    const isActive = isHovering || isTouched;
-
-    // State to track active state with delay
-    const [isActiveWithDelay, setIsActiveWithDelay] = useState(false);
-
-    // Handle natural active state changes (hover/touch)
+    // Effect to implement delayed active state
     useEffect(() => {
-        // Clear any existing timeouts
         if (animationTimeoutRef.current) {
             clearTimeout(animationTimeoutRef.current);
-            animationTimeoutRef.current = null;
         }
 
         if (isActive) {
-            // Immediately set active with delay state
+            // Activate immediately
             setIsActiveWithDelay(true);
         } else {
-            // When hover/touch ends, delay the state change
+            // Keep active for 3 seconds after hover ends
             animationTimeoutRef.current = setTimeout(() => {
                 setIsActiveWithDelay(false);
-            }, 3000); // Keep active state for 3 seconds after hover/touch ends
+            }, 3000);
         }
 
         return () => {
@@ -365,70 +237,48 @@ const TechBadge: React.FC<TechBadgeProps> = ({
         };
     }, [isActive]);
 
-    // Handle animation when active state changes
+    // Effect to handle fill animation
     useEffect(() => {
-        // Clear any existing animation timeouts
-        const animationTimeout = setTimeout(() => {
-            if (isActiveWithDelay) {
-                // When activating, show the percentage first
-                setShowPercentage(true);
+        if (isActiveWithDelay) {
+            // Show percentage immediately
+            setShowPercentage(true);
 
-                // Then animate the fill after a brief delay
-                setTimeout(() => {
-                    setFillWidth(finalSkillLevel);
-                }, 50);
-            } else {
-                // When deactivating, hide the fill first
-                setFillWidth(0);
+            // Animate fill width after a brief delay
+            setTimeout(() => {
+                setFillWidth(finalSkillLevel);
+            }, 50);
+        } else {
+            // Hide fill first
+            setFillWidth(0);
 
-                // Then hide the percentage after the animation completes
-                setTimeout(() => {
-                    setShowPercentage(false);
-                }, 300);
-            }
-        }, 0);
-
-        return () => {
-            clearTimeout(animationTimeout);
-        };
+            // Hide percentage after animation
+            setTimeout(() => {
+                setShowPercentage(false);
+            }, 300);
+        }
     }, [isActiveWithDelay, finalSkillLevel]);
 
-    // Handle touch events for mobile
-    const handleTouchStart = () => {
-        setIsTouched(true);
-        if (touchTimeoutRef.current) {
-            clearTimeout(touchTimeoutRef.current);
-            touchTimeoutRef.current = null;
-        }
-    };
-
-    const handleTouchEnd = () => {
-        // We don't need a timeout here as the 3-second delay is managed in the isActiveWithDelay effect
-        setIsTouched(false);
-    };
-
-    // Clean up all timeouts on unmount
+    // Clean up on unmount
     useEffect(() => {
         return () => {
-            if (touchTimeoutRef.current) {
-                clearTimeout(touchTimeoutRef.current);
-                touchTimeoutRef.current = null;
-            }
-            if (animationTimeoutRef.current) {
-                clearTimeout(animationTimeoutRef.current);
-                animationTimeoutRef.current = null;
-            }
+            if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+            if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
         };
     }, []);
 
+    // Get skill level description
+    const getSkillDescription = (): string => {
+        if (finalSkillLevel >= 90) return 'Expert';
+        if (finalSkillLevel >= 70) return 'Advanced';
+        if (finalSkillLevel >= 40) return 'Intermediate';
+        return 'Beginner';
+    };
+
     return (
         <div
-            ref={badgeRef}
-            className={`${sizes[size].classes} rounded-full relative inline-flex items-center justify-center 
-                 overflow-hidden ${className} transition-colors duration-300 cursor-pointer
-                 bg-white/10 hover:bg-transparent`}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
+            className={`${sizeClasses[size]} rounded-full relative inline-flex items-center justify-center overflow-hidden ${className} cursor-pointer bg-white/10 hover:bg-transparent`}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             style={{
@@ -436,46 +286,61 @@ const TechBadge: React.FC<TechBadgeProps> = ({
                 transition: 'transform 0.3s ease-out, background-color 0.3s ease'
             }}
         >
-            {/* Fill background based on skill percentage - only visible when hovered/touched */}
+            {/* Fill background with color from Firebase */}
             <div
-                className={`absolute inset-0 bg-gradient-to-r ${techInfo.gradientColors} 
-                           rounded-full`}
+                className={`absolute inset-y-0 left-0 rounded-full ${color ? '' : `bg-gradient-to-r ${getGradientClasses()}`}`}
                 style={{
-                    clipPath: `inset(0 ${100 - fillWidth}% 0 0)`,
-                    transition: 'clip-path 0.3s ease-out',
+                    ...(!color ? {} : getGradientStyle()),
+                    width: `${fillWidth}%`,
+                    transition: 'width 0.3s ease-out, opacity 0.3s ease',
                     opacity: isActiveWithDelay ? 0.8 : 0
                 }}
             />
 
-            {/* Default background (faded white) */}
+            {/* Default background */}
             <div
                 className="absolute inset-0 bg-white/10 transition-opacity duration-300"
-                style={{ opacity: isActiveWithDelay ? 0 : 1 }}
+                style={{
+                    opacity: isActiveWithDelay ? 0 : 1
+                }}
             />
 
             {/* Icon */}
             <div className="relative z-10 flex-shrink-0">
-                {React.cloneElement(techInfo.icon, {
+                {React.cloneElement(getIconComponent(), {
                     className: `transition-all duration-300 ${isActiveWithDelay ? 'text-white' : 'text-gray-300'}`
                 })}
             </div>
 
-            {/* Tech name */}
+            {/* Technology name */}
             <span className={`relative z-10 font-medium transition-colors duration-300 ${isActiveWithDelay ? 'text-white' : 'text-gray-300'}`}>
                 {tech}
             </span>
 
-            {/* Skill percentage that appears on hover */}
+            {/* Skill percentage tooltip */}
             {showPercentage && (
                 <div
-                    className="absolute top-0 right-0 text-xs font-bold px-1.5 py-0.5 rounded-bl-md bg-black/30 text-white"
+                    className="absolute top-0 right-0 text-xs font-bold px-1.5 py-0.5 rounded-bl-md bg-black/30 text-white z-50"
                     style={{
                         opacity: isActiveWithDelay ? 1 : 0,
                         transform: isActiveWithDelay ? 'translateY(0)' : 'translateY(-100%)',
-                        transition: 'opacity 0.2s ease, transform 0.3s ease',
+                        transition: 'opacity 0.2s ease, transform 0.3s ease'
                     }}
                 >
                     {finalSkillLevel}%
+                </div>
+            )}
+
+            {/* Skill level description */}
+            {showPercentage && (
+                <div
+                    className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs px-2 py-1 rounded bg-black/70 text-white whitespace-nowrap z-50"
+                    style={{
+                        opacity: isActiveWithDelay ? 1 : 0,
+                        transition: 'opacity 0.3s ease'
+                    }}
+                >
+                    {getSkillDescription()}
                 </div>
             )}
         </div>

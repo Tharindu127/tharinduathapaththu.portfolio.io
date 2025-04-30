@@ -1,128 +1,156 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageCarouselProps {
     images: string[];
+    alts?: string[];  // Added alts prop as optional
     autoplaySpeed?: number;
-    className?: string;
+    onImageChange?: (index: number) => void; // Prop to expose current image index
 }
 
 const ImageCarousel: React.FC<ImageCarouselProps> = ({
     images,
+    alts = [],  // Default to empty array if not provided
     autoplaySpeed = 5000,
-    className = ''
+    onImageChange
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Go to next slide with animation
-    const nextSlide = useCallback(() => {
-        if (isTransitioning) return;
-
-        setIsTransitioning(true);
-        setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
-
-        // Reset transition state after animation completes
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 500);
-    }, [images.length, isTransitioning]);
-
-    // Go to previous slide with animation
-    const prevSlide = useCallback(() => {
-        if (isTransitioning) return;
-
-        setIsTransitioning(true);
-        setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
-
-        // Reset transition state after animation completes
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 500);
-    }, [images.length, isTransitioning]);
-
-    // Handle autoplay
-    useEffect(() => {
-        if (isPaused || images.length <= 1) return;
-
-        const interval = setInterval(() => {
-            nextSlide();
-        }, autoplaySpeed);
-
-        return () => clearInterval(interval);
-    }, [nextSlide, autoplaySpeed, isPaused, images.length]);
-
-    // Jump to a specific slide
-    const goToSlide = (index: number) => {
-        if (isTransitioning || index === currentIndex) return;
-
-        setIsTransitioning(true);
+    // Go to a specific slide
+    const goToSlide = useCallback((index: number) => {
         setCurrentIndex(index);
+        if (onImageChange) {
+            onImageChange(index);
+        }
+    }, [onImageChange]);
 
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 500);
+    // Go to the next slide
+    const goToNext = useCallback(() => {
+        const newIndex = (currentIndex + 1) % images.length;
+        goToSlide(newIndex);
+    }, [currentIndex, images.length, goToSlide]);
+
+    // Go to the previous slide
+    const goToPrevious = useCallback(() => {
+        const newIndex = (currentIndex - 1 + images.length) % images.length;
+        goToSlide(newIndex);
+    }, [currentIndex, images.length, goToSlide]);
+
+    // Reset the autoplay timer
+    const resetAutoplayTimer = useCallback(() => {
+        if (autoplayTimerRef.current) {
+            clearTimeout(autoplayTimerRef.current);
+        }
+
+        if (isAutoPlaying) {
+            autoplayTimerRef.current = setTimeout(() => {
+                goToNext();
+            }, autoplaySpeed);
+        }
+    }, [isAutoPlaying, autoplaySpeed, goToNext]);
+
+    // Update autoplay timer when dependencies change
+    useEffect(() => {
+        resetAutoplayTimer();
+
+        // Cleanup when component unmounts
+        return () => {
+            if (autoplayTimerRef.current) {
+                clearTimeout(autoplayTimerRef.current);
+            }
+        };
+    }, [resetAutoplayTimer]);
+
+    // Pause autoplay when mouse enters
+    const handleMouseEnter = useCallback(() => {
+        setIsAutoPlaying(false);
+        if (autoplayTimerRef.current) {
+            clearTimeout(autoplayTimerRef.current);
+        }
+    }, []);
+
+    // Resume autoplay when mouse leaves
+    const handleMouseLeave = useCallback(() => {
+        setIsAutoPlaying(true);
+        resetAutoplayTimer();
+    }, [resetAutoplayTimer]);
+
+    // Get alt text for current image
+    const getAltText = (index: number) => {
+        // If alts array exists and has an entry for this index, use it
+        if (alts && alts[index]) {
+            return alts[index];
+        }
+        // Otherwise return a generic alt text
+        return `Carousel image ${index + 1}`;
     };
 
     return (
         <div
-            className={`relative w-full aspect-[4/5] min-h-[300px] bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl overflow-hidden ${className}`}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+            className="relative rounded-2xl overflow-hidden aspect-[3/4] sm:aspect-[4/3] md:aspect-[3/4] lg:aspect-[4/3] shadow-2xl"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
-            {/* Images */}
-            <div className="absolute inset-0">
+            {/* Black gradient overlay for better visibility of controls */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-20"></div>
+
+            {/* Image container */}
+            <div className="relative h-full w-full bg-gray-900">
                 {images.map((image, index) => (
                     <div
                         key={index}
-                        className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
                             }`}
                     >
                         <Image
                             src={image}
-                            alt={`Carousel image ${index + 1}`}
+                            alt={getAltText(index)}
                             fill
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                            priority={index === 0}
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 75vw, 50vw"
+                            priority={index === 0} // Prioritize loading the first image
                             className="object-cover"
                         />
                     </div>
                 ))}
             </div>
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-20"></div>
-
             {/* Navigation arrows */}
             <button
-                onClick={prevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center hover:bg-black/50 transition-all z-30"
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-30 hover:bg-black/50 transition-all"
+                onClick={(e) => {
+                    e.preventDefault();
+                    goToPrevious();
+                }}
                 aria-label="Previous image"
             >
                 <ChevronLeft size={24} />
             </button>
 
             <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center hover:bg-black/50 transition-all z-30"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-30 hover:bg-black/50 transition-all"
+                onClick={(e) => {
+                    e.preventDefault();
+                    goToNext();
+                }}
                 aria-label="Next image"
             >
                 <ChevronRight size={24} />
             </button>
 
-            {/* Indicator dots */}
+            {/* Indicators */}
             <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30">
                 {images.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => goToSlide(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${index === currentIndex
-                            ? 'bg-white w-6'
-                            : 'bg-white/50 hover:bg-white/80'
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentIndex
+                            ? 'bg-white scale-110'
+                            : 'bg-white/40 hover:bg-white/60'
                             }`}
-                        aria-label={`Go to slide ${index + 1}`}
+                        aria-label={`Go to image ${index + 1}`}
                     />
                 ))}
             </div>
