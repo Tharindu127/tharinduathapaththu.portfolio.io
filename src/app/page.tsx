@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { NavItem, Project, Stats, AboutData, Technology, SocialLink, ContactInfo } from './types';
+import LoadingScreen from './components/ui/LoadingScreen';
 import Navbar from './components/layout/Navbar';
 import MobileMenu from './components/layout/MobileMenu';
 import Footer from './components/layout/Footer';
